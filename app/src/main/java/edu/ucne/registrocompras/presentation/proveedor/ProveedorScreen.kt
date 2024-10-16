@@ -47,10 +47,12 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import edu.ucne.registrocompras.ui.theme.RegistroComprasTheme
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -341,5 +343,16 @@ private fun ProveedorBodyScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun ProveedorScreenPreview(){
+    RegistroComprasTheme {
+        ProveedorScreen(
+            proveedorId = 0,
+            goProveedorList = {}
+        )
     }
 }

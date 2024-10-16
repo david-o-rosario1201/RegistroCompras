@@ -33,6 +33,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -56,11 +57,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import edu.ucne.registrocompras.R
 import edu.ucne.registrocompras.data.remote.dto.ProveedorDto
+import edu.ucne.registrocompras.ui.theme.RegistroComprasTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -329,5 +332,18 @@ private fun ProveedorRow(
                 }
             }
         }
+    }
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun ProveedorListScreenPreview(){
+    RegistroComprasTheme {
+        ProveedorListScreen(
+            drawerState = DrawerState(DrawerValue.Closed),
+            scope = rememberCoroutineScope(),
+            onClickProveedor = {},
+            onAddProveedor = {}
+        )
     }
 }

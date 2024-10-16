@@ -20,10 +20,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import edu.ucne.registrocompras.presentation.categoria.CategoriaListScreen
 import edu.ucne.registrocompras.presentation.categoria.CategoriaScreen
@@ -36,6 +38,7 @@ import edu.ucne.registrocompras.presentation.producto.ProductoListScreen
 import edu.ucne.registrocompras.presentation.producto.ProductoScreen
 import edu.ucne.registrocompras.presentation.proveedor.ProveedorListScreen
 import edu.ucne.registrocompras.presentation.proveedor.ProveedorScreen
+import edu.ucne.registrocompras.ui.theme.RegistroComprasTheme
 import edu.ucne.registrocompras.ui.theme.util.NavigationItem
 import edu.ucne.registrocompras.ui.theme.util.Route
 import kotlinx.coroutines.launch
@@ -218,5 +221,16 @@ fun RegistroComprasNavHots(
                 )
             }
         }
+    }
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun RegistroComprasNavHotsPreview() {
+    RegistroComprasTheme {
+        RegistroComprasNavHots(
+            navHostController = rememberNavController(),
+            items = listOf()
+        )
     }
 }
