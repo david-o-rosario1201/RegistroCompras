@@ -1,5 +1,7 @@
 package edu.ucne.registrocompras.data.repository
 
+import edu.ucne.registrocompras.data.local.dao.CompraDao
+import edu.ucne.registrocompras.data.local.entities.CompraEntity
 import edu.ucne.registrocompras.data.remote.RemoteDataSource
 import edu.ucne.registrocompras.data.remote.Resource
 import edu.ucne.registrocompras.data.remote.dto.CompraDto
@@ -9,7 +11,8 @@ import retrofit2.HttpException
 import javax.inject.Inject
 
 class CompraRepository @Inject constructor(
-    private val remoteDataSource: RemoteDataSource
+    private val remoteDataSource: RemoteDataSource,
+    private val compraDao: CompraDao
 ){
     suspend fun addCompra(compraDto: CompraDto) = remoteDataSource.addCompra(compraDto)
 
@@ -19,16 +22,38 @@ class CompraRepository @Inject constructor(
 
     suspend fun updateCompra(compraId: Int, compraDto: CompraDto) = remoteDataSource.updateCompra(compraId, compraDto)
 
-    fun getCompras(): Flow<Resource<List<CompraDto>>> = flow{
+    fun getCompras(): Flow<Resource<List<CompraEntity>>> = flow{
         try {
             emit(Resource.Loading())
             val compras = remoteDataSource.getCompras()
 
-            emit(Resource.Success(compras))
+            compras.forEach {
+                compraDao.addCompra(
+                    it.toCompraEntity()
+                )
+            }
+
+            compraDao.getCompras().collect { comprasLocal ->
+                emit(Resource.Success(comprasLocal))
+            }
+
         } catch (e: HttpException){
             emit(Resource.Error("Error de internet ${e.message}"))
         } catch (e: Exception){
             emit(Resource.Error("Error desconocido ${e.message}"))
+
+            compraDao.getCompras().collect { comprasLocal ->
+                emit(Resource.Success(comprasLocal))
+            }
         }
     }
 }
+
+private fun CompraDto.toCompraEntity() = CompraEntity (
+    compraId = compraId,
+    fechaCompra = fechaCompra,
+    productoId = productoId,
+    cantidad = cantidad,
+    precioUnitario = precioUnitario,
+    totalCompra = totalCompra
+)

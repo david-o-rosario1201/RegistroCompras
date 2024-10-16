@@ -50,7 +50,8 @@ class CompraViewModel @Inject constructor(
                     is Resource.Error -> {
                         _uiState.update {
                             it.copy(
-                                errorCargar = result.message,
+                                //errorCargar = result.message,
+                                compras = result.data ?: emptyList(),
                                 isLoading = false
                             )
                         }
@@ -82,7 +83,8 @@ class CompraViewModel @Inject constructor(
                     is Resource.Error -> {
                         _uiState.update {
                             it.copy(
-                                errorCargar = result.message,
+                                //errorCargar = result.message,
+                                productos = result.data ?: emptyList(),
                                 isLoading = false
                             )
                         }
