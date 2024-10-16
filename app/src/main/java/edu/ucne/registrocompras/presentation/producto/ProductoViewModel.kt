@@ -53,7 +53,8 @@ class ProductoViewModel @Inject constructor(
                     is Resource.Error -> {
                         _uiState.update {
                             it.copy(
-                                errorCargar = result.message,
+                                //errorCargar = result.message,
+                                productos = result.data ?: emptyList(),
                                 isLoading = false
                             )
                         }
@@ -85,7 +86,8 @@ class ProductoViewModel @Inject constructor(
                     is Resource.Error -> {
                         _uiState.update {
                             it.copy(
-                                errorCargar = result.message,
+                                //errorCargar = result.message,
+                                categorias = result.data ?: emptyList(),
                                 isLoading = false
                             )
                         }
@@ -117,7 +119,8 @@ class ProductoViewModel @Inject constructor(
                     is Resource.Error -> {
                         _uiState.update {
                             it.copy(
-                                errorCargar = result.message,
+                                //errorCargar = result.message,
+                                proveedores = result.data ?: emptyList(),
                                 isLoading = false
                             )
                         }
