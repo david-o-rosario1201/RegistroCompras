@@ -24,7 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
+import edu.ucne.registrocompras.presentation.navigation.RegistroComprasNavHots
 import edu.ucne.registrocompras.ui.theme.RegistroComprasTheme
 import edu.ucne.registrocompras.ui.theme.util.NavigationItem
 import edu.ucne.registrocompras.ui.theme.util.Route
@@ -36,7 +38,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             RegistroComprasTheme {
+                val navHostController = rememberNavController()
+                val items = BuildNavigationItems()
 
+                RegistroComprasNavHots(
+                    navHostController = navHostController,
+                    items = items
+                )
             }
         }
     }
