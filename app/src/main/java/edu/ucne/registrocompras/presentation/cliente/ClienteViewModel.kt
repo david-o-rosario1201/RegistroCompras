@@ -67,28 +67,32 @@ class ClienteViewModel @Inject constructor(
             is ClienteUiEvent.NombreChange -> {
                 _uiState.update {
                     it.copy(
-                        nombre = event.nombre
+                        nombre = event.nombre,
+                        errorNombre = ""
                     )
                 }
             }
             is ClienteUiEvent.CedulaChange -> {
                 _uiState.update {
                     it.copy(
-                        cedula = event.cedula
+                        cedula = event.cedula,
+                        errorCedula = ""
                     )
                 }
             }
             is ClienteUiEvent.DireccionChange -> {
                 _uiState.update {
                     it.copy(
-                        direccion = event.direccion
+                        direccion = event.direccion,
+                        errorDireccion = ""
                     )
                 }
             }
             is ClienteUiEvent.TelefonoChange -> {
                 _uiState.update {
                     it.copy(
-                        telefono = event.telefono
+                        telefono = event.telefono,
+                        errorTelefono = ""
                     )
                 }
             }
@@ -109,8 +113,109 @@ class ClienteViewModel @Inject constructor(
                     }
                 }
             }
-            ClienteUiEvent.Save -> TODO()
-            ClienteUiEvent.Delete -> TODO()
+            ClienteUiEvent.Save -> {
+                viewModelScope.launch {
+
+                    val nombreBuscado = _uiState.value.clientes
+                        .find { it.nombre.lowercase() == _uiState.value.nombre?.lowercase() }
+
+                    val cedulaBuscada = _uiState.value.clientes
+                        .find { it.cedula == _uiState.value.cedula }
+
+                    val telefonoBuscado = _uiState.value.clientes
+                        .find { it.telefono == _uiState.value.telefono }
+
+                    if(_uiState.value.nombre?.isBlank() == true){
+                        _uiState.update {
+                            it.copy(
+                                errorNombre = "El nombre no puede estar vacío"
+                            )
+                        }
+                    }
+                    else if(nombreBuscado != null && nombreBuscado.clienteId != _uiState.value.clienteId){
+                        _uiState.update {
+                            it.copy(
+                                errorNombre = "El nombre ya existe"
+                            )
+                        }
+                    }
+
+                    if(_uiState.value.cedula?.isBlank() == true) {
+                        _uiState.update {
+                            it.copy(
+                                errorCedula = "La cédula no puede estar vacío"
+                            )
+                        }
+                    }
+                    else if(cedulaBuscada != null && cedulaBuscada.clienteId != _uiState.value.clienteId){
+                        _uiState.update {
+                            it.copy(
+                                errorCedula = "La cédula ya existe"
+                            )
+                        }
+                    }
+                    else if(_uiState.value.cedula?.length != 11){
+                        _uiState.update {
+                            it.copy(
+                                errorCedula = "La cédula debe tener 11 dígitos"
+                            )
+                        }
+                    }
+
+                    if(_uiState.value.direccion?.isBlank() == true) {
+                        _uiState.update {
+                            it.copy(
+                                errorDireccion = "La dirección no puede estar vacía"
+                            )
+                        }
+                    }
+
+                    if(_uiState.value.telefono?.isBlank() == true) {
+                        _uiState.update {
+                            it.copy(
+                                errorTelefono = "El teléfono no puede estar vacío"
+                            )
+                        }
+                    }
+                    else if(telefonoBuscado != null && telefonoBuscado.clienteId != _uiState.value.clienteId){
+                        _uiState.update {
+                            it.copy(
+                                errorTelefono = "El teléfono ya existe"
+                            )
+                        }
+                    }
+                    else if(_uiState.value.telefono?.length != 10){
+                        _uiState.update {
+                            it.copy(
+                                errorTelefono = "El teléfono debe tener 10 dígitos"
+                            )
+                        }
+                    }
+
+                    if(_uiState.value.errorNombre == "" && _uiState.value.errorCedula == ""
+                        && _uiState.value.errorDireccion == "" && _uiState.value.errorTelefono == ""){
+
+                        if(_uiState.value.clienteId == null)
+                            clienteRepository.addCliente(_uiState.value.toEntity())
+                        else
+                            clienteRepository.updateCliente(
+                                _uiState.value.clienteId ?: 0,
+                                _uiState.value.toEntity()
+                            )
+
+                        _uiState.update {
+                            it.copy(
+                                success = true
+                            )
+                        }
+                    }
+                }
+            }
+            ClienteUiEvent.Delete -> {
+                viewModelScope.launch {
+                    clienteRepository.deleteCliente(_uiState.value.clienteId ?: 0)
+                }
+            }
         }
     }
 
