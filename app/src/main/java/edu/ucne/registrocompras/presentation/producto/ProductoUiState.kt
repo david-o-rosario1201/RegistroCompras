@@ -1,5 +1,6 @@
 package edu.ucne.registrocompras.presentation.producto
 
+
 import edu.ucne.registrocompras.data.remote.dto.CategoriaDto
 import edu.ucne.registrocompras.data.remote.dto.ProductoDto
 import edu.ucne.registrocompras.data.remote.dto.ProveedorDto
@@ -13,7 +14,7 @@ data class ProductoUiState(
     val fechaCreacion: Date = Date.from(Instant.now()),
     val categoriaId: Int? = 0,
     val proveedorId: Int? = 0,
-    val precio: Float? = 0.0f,
+    val precio: String? = "",
     val productos: List<ProductoDto> = emptyList(),
     val categorias: List<CategoriaDto> = emptyList(),
     val proveedores: List<ProveedorDto> = emptyList(),
