@@ -62,7 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import edu.ucne.registrocompras.R
-import edu.ucne.registrocompras.data.remote.dto.ProveedorDto
+import edu.ucne.registrocompras.data.local.entities.ProveedorEntity
 import edu.ucne.registrocompras.ui.theme.RegistroComprasTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -229,10 +229,10 @@ private fun ProveedorListBodyScreen(
 
 @Composable
 private fun ProveedorRow(
-    it: ProveedorDto,
+    it: ProveedorEntity,
     onClickProveedor: (Int) -> Unit,
     onDeleteProveedor: (Int) -> Unit,
-    proveedores: MutableList<ProveedorDto>,
+    proveedores: MutableList<ProveedorEntity>,
     modifier: Modifier = Modifier
 ){
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
