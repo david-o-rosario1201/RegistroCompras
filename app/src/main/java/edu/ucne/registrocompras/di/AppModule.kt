@@ -10,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import edu.ucne.registrocompras.data.local.database.ComprasDb
+import edu.ucne.registrocompras.data.local.database.DateAdapter
 import edu.ucne.registrocompras.data.remote.ComprasApi
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -25,6 +26,7 @@ object AppModule{
     fun providesMoshi(): Moshi =
         Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
+            .add(DateAdapter())
             .build()
 
     @Provides
