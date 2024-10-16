@@ -17,7 +17,7 @@ class CompraRepository @Inject constructor(
 
     suspend fun deleteCompra(compraId: Int) = remoteDataSource.deleteCompra(compraId)
 
-    suspend fun updateCompra(compraId: Int) = remoteDataSource.updateCompra(compraId)
+    suspend fun updateCompra(compraId: Int, compraDto: CompraDto) = remoteDataSource.updateCompra(compraId, compraDto)
 
     fun getCompras(): Flow<Resource<List<CompraDto>>> = flow{
         try {
