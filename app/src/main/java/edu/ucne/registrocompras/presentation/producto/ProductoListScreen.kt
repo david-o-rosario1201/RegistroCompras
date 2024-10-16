@@ -59,9 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import edu.ucne.registrocompras.R
-import edu.ucne.registrocompras.data.remote.dto.CategoriaDto
-import edu.ucne.registrocompras.data.remote.dto.ProductoDto
-import edu.ucne.registrocompras.data.remote.dto.ProveedorDto
+import edu.ucne.registrocompras.data.local.entities.CategoriaEntity
+import edu.ucne.registrocompras.data.local.entities.ProductoEntity
+import edu.ucne.registrocompras.data.local.entities.ProveedorEntity
 import edu.ucne.registrocompras.ui.theme.RegistroComprasTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -230,12 +230,12 @@ private fun ProductoListBodyScreen(
 
 @Composable
 private fun ProductoRow(
-    it: ProductoDto,
-    categorias: List<CategoriaDto>,
-    proveedores: List<ProveedorDto>,
+    it: ProductoEntity,
+    categorias: List<CategoriaEntity>,
+    proveedores: List<ProveedorEntity>,
     onClickProducto: (productoId: Int) -> Unit,
     onDeleteProducto: (productoId: Int) -> Unit,
-    productos: MutableList<ProductoDto>,
+    productos: MutableList<ProductoEntity>,
     modifier: Modifier = Modifier
 ){
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
