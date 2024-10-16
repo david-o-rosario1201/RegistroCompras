@@ -69,7 +69,8 @@ class CategoriaViewModel @Inject constructor(
             is CategoriaUiEvent.DescripcionChange -> {
                 _uiState.update {
                     it.copy(
-                        descripcion = event.descripcion
+                        descripcion = event.descripcion,
+                        errorDescripcion = ""
                     )
                 }
             }
@@ -87,8 +88,49 @@ class CategoriaViewModel @Inject constructor(
                     }
                 }
             }
-            CategoriaUiEvent.Save -> TODO()
-            CategoriaUiEvent.Delete -> TODO()
+            CategoriaUiEvent.Save -> {
+                viewModelScope.launch {
+
+                    val descripcionBuscada = _uiState.value.categorias
+                        .find { it.descripcion.lowercase() == _uiState.value.descripcion?.lowercase() }
+
+                    if(_uiState.value.descripcion?.isBlank() == true){
+                        _uiState.update {
+                            it.copy(
+                                errorDescripcion = "La descripción no puede estar vacía"
+                            )
+                        }
+                    }
+                    else if(descripcionBuscada != null && descripcionBuscada.categoriaId != _uiState.value.categoriaId) {
+                        _uiState.update {
+                            it.copy(
+                                errorDescripcion = "La descripción ya existe"
+                            )
+                        }
+                    }
+
+                    if(_uiState.value.errorDescripcion == ""){
+                        if(_uiState.value.categoriaId == null)
+                            categoriaRepository.addCategoria(_uiState.value.toEntity())
+                        else
+                            categoriaRepository.updateCategoria(
+                                _uiState.value.categoriaId ?: 0,
+                                _uiState.value.toEntity()
+                            )
+                        
+                        _uiState.update {
+                            it.copy(
+                                success = true
+                            )
+                        }
+                    }
+                }
+            }
+            CategoriaUiEvent.Delete -> {
+                viewModelScope.launch {
+                    categoriaRepository.deleteCategoria(_uiState.value.categoriaId ?: 0)
+                }
+            }
         }
     }
 
