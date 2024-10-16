@@ -1,9 +1,14 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 
 package edu.ucne.registrocompras.presentation.compra
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,9 +36,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +60,7 @@ import edu.ucne.registrocompras.R
 import edu.ucne.registrocompras.data.remote.dto.CompraDto
 import edu.ucne.registrocompras.data.remote.dto.ProductoDto
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -66,7 +79,11 @@ fun CompraListScreen(
         scope = scope,
         uiState = uiState,
         onClickCompra = onClickCompra,
-        onAddCompra = onAddCompra
+        onAddCompra = onAddCompra,
+        onDeleteCompra = { compraId ->
+            viewModel.onEvent(CompraUiEvent.CompraIdChanged(compraId))
+            viewModel.onEvent(CompraUiEvent.Delete)
+        }
     )
 }
 
@@ -76,8 +93,16 @@ private fun CompraListBodyScreen(
     scope: CoroutineScope,
     uiState: CompraUiState,
     onClickCompra: (Int) -> Unit,
-    onAddCompra: () -> Unit
+    onAddCompra: () -> Unit,
+    onDeleteCompra: (Int) -> Unit
 ){
+    val compras = remember { mutableStateListOf(*uiState.compras.toTypedArray()) }
+
+    LaunchedEffect(uiState.compras) {
+        compras.clear()
+        compras.addAll(uiState.compras)
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -157,7 +182,7 @@ private fun CompraListBodyScreen(
                         modifier = Modifier
                             .fillMaxSize()
                     ){
-                        if(uiState.compras.isEmpty()){
+                        if(compras.isEmpty()){
                             item {
                                 Column(
                                     modifier = Modifier
@@ -177,11 +202,17 @@ private fun CompraListBodyScreen(
                                 }
                             }
                         }else{
-                            items(uiState.compras){
+                            items(
+                                items = compras,
+                                key = { it.compraId ?: 0 }
+                            ){
                                 CompraRow(
                                     it = it,
                                     productos = uiState.productos,
-                                    onClickCompra = onClickCompra
+                                    onClickCompra = onClickCompra,
+                                    onDeleteCompra = onDeleteCompra,
+                                    compras = compras,
+                                    modifier = Modifier.animateItemPlacement(tween(200))
                                 )
                             }
                         }
@@ -196,7 +227,10 @@ private fun CompraListBodyScreen(
 private fun CompraRow(
     it: CompraDto,
     productos: List<ProductoDto>,
-    onClickCompra: (Int) -> Unit
+    onClickCompra: (Int) -> Unit,
+    onDeleteCompra: (Int) -> Unit,
+    compras: MutableList<CompraDto>,
+    modifier: Modifier = Modifier
 ){
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
@@ -204,61 +238,100 @@ private fun CompraRow(
         producto.productoId == it.productoId
     }?.nombre ?: ""
 
-    Card(
-        onClick = {
-            onClickCompra(it.compraId ?: 0)
-        },
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFB0BEC5)
-        ),
-        modifier = Modifier
-            .padding(top = 20.dp)
-            .fillMaxWidth()
-            .heightIn(min = 100.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(R.drawable.compras_image),
-                contentDescription = "Productos Image",
-                modifier = Modifier
-                    .padding(vertical = 20.dp)
-                    .size(96.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop
+    val scope = rememberCoroutineScope()
+    val swipeToDismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { state ->
+            if(state == SwipeToDismissBoxValue.EndToStart){
+                scope.launch {
+                    delay(500)
+                    onDeleteCompra(it.compraId ?: 0)
+                    compras.remove(it)
+                }
+                true
+            } else{
+                false
+            }
+        }
+    )
+
+    LaunchedEffect(compras) {
+        swipeToDismissState.snapTo(SwipeToDismissBoxValue.Settled)
+    }
+
+    SwipeToDismissBox(
+        state = swipeToDismissState,
+        backgroundContent = {
+            val backgroundColor by animateColorAsState(
+                targetValue = when (swipeToDismissState.currentValue) {
+                    SwipeToDismissBoxValue.StartToEnd -> Color.Green
+                    SwipeToDismissBoxValue.EndToStart -> Color.Red
+                    SwipeToDismissBoxValue.Settled -> Color.White
+                }, label = ""
             )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(
+            Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
+                    .fillMaxSize()
+                    .background(backgroundColor)
+            )
+        },
+        modifier = modifier
+    ){
+        Card(
+            onClick = {
+                onClickCompra(it.compraId ?: 0)
+            },
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFB0BEC5)
+            ),
+            modifier = Modifier
+                .padding(top = 20.dp)
+                .fillMaxWidth()
+                .heightIn(min = 100.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Fecha de Creación: ${dateFormat.format(it.fechaCompra)}",
-                    style = MaterialTheme.typography.bodyMedium,
+                Image(
+                    painter = painterResource(R.drawable.compras_image),
+                    contentDescription = "Productos Image",
+                    modifier = Modifier
+                        .padding(vertical = 20.dp)
+                        .size(96.dp)
+                        .clip(RoundedCornerShape(10.dp)),
+                    contentScale = ContentScale.Crop
                 )
-                Text(
-                    text = "Producto: $descripcionProducto",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Cantidad: ${it.cantidad}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Precio Unitario: ${it.precioUnitario}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Total Compra: ${it.totalCompra}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                ) {
+                    Text(
+                        text = "Fecha de Creación: ${dateFormat.format(it.fechaCompra)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Producto: $descripcionProducto",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Cantidad: ${it.cantidad}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Precio Unitario: ${it.precioUnitario}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Total Compra: ${it.totalCompra}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
         }
     }
