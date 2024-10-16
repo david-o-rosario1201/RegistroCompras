@@ -17,7 +17,7 @@ class ClienteRepository @Inject constructor(
 
     suspend fun deleteCliente(clienteId: Int) = remoteDataSource.deleteCliente(clienteId)
 
-    suspend fun updateCliente(clienteId: Int) = remoteDataSource.updateCliente(clienteId)
+    suspend fun updateCliente(clienteId: Int, clienteDto: ClienteDto) = remoteDataSource.updateCliente(clienteId, clienteDto)
 
     fun getClientes(): Flow<Resource<List<ClienteDto>>> = flow{
         try {
