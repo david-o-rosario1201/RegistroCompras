@@ -17,7 +17,7 @@ class CategoriaRepository @Inject constructor(
 
     suspend fun deleteCategoria(categoriaId: Int) = remoteDataSource.deleteCategoria(categoriaId)
 
-    suspend fun updateCategoria(categoriaId: Int) = remoteDataSource.updateCategoria(categoriaId)
+    suspend fun updateCategoria(categoriaId: Int, categoriaDto: CategoriaDto) = remoteDataSource.updateCategoria(categoriaId, categoriaDto)
 
     fun getCategorias(): Flow<Resource<List<CategoriaDto>>> = flow{
         try {
