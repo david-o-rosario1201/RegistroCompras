@@ -61,7 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import edu.ucne.registrocompras.R
-import edu.ucne.registrocompras.data.remote.dto.ClienteDto
+import edu.ucne.registrocompras.data.local.entities.ClienteEntity
 import edu.ucne.registrocompras.ui.theme.RegistroComprasTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -228,10 +228,10 @@ fun ClienteListBodyScreen(
 
 @Composable
 fun ClienteRow(
-    it: ClienteDto,
+    it: ClienteEntity,
     onClickCliente: (Int) -> Unit,
     onDeleteCliente: (Int) -> Unit,
-    clientes: MutableList<ClienteDto>,
+    clientes: MutableList<ClienteEntity>,
     modifier: Modifier = Modifier
 ){
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
