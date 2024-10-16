@@ -45,7 +45,8 @@ class ClienteViewModel @Inject constructor(
                     is Resource.Error -> {
                         _uiState.update {
                             it.copy(
-                                errorCargar = result.message,
+                                //errorCargar = result.message,
+                                clientes = result.data ?: emptyList(),
                                 isLoading = false
                             )
                         }
