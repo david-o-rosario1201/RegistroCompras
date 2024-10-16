@@ -5,6 +5,7 @@ import edu.ucne.registrocompras.data.remote.dto.ClienteDto
 import edu.ucne.registrocompras.data.remote.dto.CompraDto
 import edu.ucne.registrocompras.data.remote.dto.ProductoDto
 import edu.ucne.registrocompras.data.remote.dto.ProveedorDto
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -20,13 +21,18 @@ interface ComprasApi {
     suspend fun getProveedor(@Path("proveedorId") proveedorId: Int): ProveedorDto
 
     @DELETE("api/Proveedores/{proveedorId}")
-    suspend fun deleteProveedor(@Path("proveedorId") proveedorId: Int)
+    suspend fun deleteProveedor(@Path("proveedorId") proveedorId: Int): Response<Unit>
 
     @PUT("api/Proveedores/{proveedorId}")
-    suspend fun updateProveedor(@Path("proveedorId") proveedorId: Int)
+    suspend fun updateProveedor(
+        @Path("proveedorId") proveedorId: Int,
+        @Body proveedor: ProveedorDto
+    ): Response<ProveedorDto>
 
     @GET("api/Proveedores")
     suspend fun getProveedores(): List<ProveedorDto>
+
+
 
 
     @POST("api/Clientes")
@@ -36,13 +42,18 @@ interface ComprasApi {
     suspend fun getCliente(@Path("clienteId") clienteId: Int): ClienteDto
 
     @DELETE("api/Clientes/{clienteId}")
-    suspend fun deleteCliente(@Path("clienteId") clienteId: Int)
+    suspend fun deleteCliente(@Path("clienteId") clienteId: Int): Response<Unit>
 
     @PUT("api/Clientes/{clienteId}")
-    suspend fun updateCliente(@Path("clienteId") clienteId: Int)
+    suspend fun updateCliente(
+        @Path("clienteId") clienteId: Int,
+        @Body cliente: ClienteDto
+    ): Response<ClienteDto>
 
     @GET("api/Clientes")
     suspend fun getClientes(): List<ClienteDto>
+
+
 
 
     @POST("api/Categorias")
@@ -52,13 +63,18 @@ interface ComprasApi {
     suspend fun getCategoria(@Path("categoriaId") categoriaId: Int): CategoriaDto
 
     @DELETE("api/Categorias/{categoriaId}")
-    suspend fun deleteCategoria(@Path("categoriaId") categoriaId: Int)
+    suspend fun deleteCategoria(@Path("categoriaId") categoriaId: Int): Response<Unit>
 
     @PUT("api/Categorias/{categoriaId}")
-    suspend fun updateCategoria(@Path("categoriaId") categoriaId: Int)
+    suspend fun updateCategoria(
+        @Path("categoriaId") categoriaId: Int,
+        @Body categoria: CategoriaDto
+    ): Response<CategoriaDto>
 
     @GET("api/Categorias")
     suspend fun getCategorias(): List<CategoriaDto>
+
+
 
 
     @POST("api/Productos")
@@ -68,13 +84,18 @@ interface ComprasApi {
     suspend fun getProducto(@Path("productoId") productoId: Int): ProductoDto
 
     @DELETE("api/Productos/{productoId}")
-    suspend fun deleteProducto(@Path("productoId") productoId: Int)
+    suspend fun deleteProducto(@Path("productoId") productoId: Int): Response<Unit>
 
     @PUT("api/Productos/{productoId}")
-    suspend fun updateProducto(@Path("productoId") productoId: Int)
+    suspend fun updateProducto(
+        @Path("productoId") productoId: Int,
+        @Body producto: ProductoDto
+    ): Response<ProductoDto>
 
     @GET("api/Productos")
     suspend fun getProductos(): List<ProductoDto>
+
+
 
 
     @POST("api/Compras")
@@ -84,10 +105,13 @@ interface ComprasApi {
     suspend fun getCompra(@Path("compraId") compraId: Int): CompraDto
 
     @DELETE("api/Compras/{compraId}")
-    suspend fun deleteCompra(@Path("compraId") compraId: Int)
+    suspend fun deleteCompra(@Path("compraId") compraId: Int): Response<Unit>
 
     @PUT("api/Compras/{compraId}")
-    suspend fun updateCompra(@Path("compraId") compraId: Int)
+    suspend fun updateCompra(
+        @Path("compraId") compraId: Int,
+        @Body compra: CompraDto
+    ): Response<CompraDto>
 
     @GET("api/Compras")
     suspend fun getCompras(): List<CompraDto>
