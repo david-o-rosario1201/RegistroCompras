@@ -16,7 +16,7 @@ class RemoteDataSource @Inject constructor(
 
     suspend fun deleteProveedor(proveedorId: Int) = comprasApi.deleteProveedor(proveedorId)
 
-    suspend fun updateProveedor(proveedorId: Int) = comprasApi.updateProveedor(proveedorId)
+    suspend fun updateProveedor(proveedorId: Int, proveedor: ProveedorDto) = comprasApi.updateProveedor(proveedorId, proveedor)
 
     suspend fun getProveedores() = comprasApi.getProveedores()
 
@@ -27,7 +27,7 @@ class RemoteDataSource @Inject constructor(
 
     suspend fun deleteCliente(clienteId: Int) = comprasApi.deleteCliente(clienteId)
 
-    suspend fun updateCliente(clienteId: Int) = comprasApi.updateCliente(clienteId)
+    suspend fun updateCliente(clienteId: Int, clienteDto: ClienteDto) = comprasApi.updateCliente(clienteId, clienteDto)
 
     suspend fun getClientes() = comprasApi.getClientes()
 
@@ -38,7 +38,7 @@ class RemoteDataSource @Inject constructor(
 
     suspend fun deleteCategoria(categoriaId: Int) = comprasApi.deleteCategoria(categoriaId)
 
-    suspend fun updateCategoria(categoriaId: Int) = comprasApi.updateCategoria(categoriaId)
+    suspend fun updateCategoria(categoriaId: Int, categoriaDto: CategoriaDto) = comprasApi.updateCategoria(categoriaId, categoriaDto)
 
     suspend fun getCategorias() = comprasApi.getCategorias()
 
@@ -49,7 +49,7 @@ class RemoteDataSource @Inject constructor(
 
     suspend fun deleteProducto(productoId: Int) = comprasApi.deleteProducto(productoId)
 
-    suspend fun updateProducto(productoId: Int) = comprasApi.updateProducto(productoId)
+    suspend fun updateProducto(productoId: Int, productoDto: ProductoDto) = comprasApi.updateProducto(productoId, productoDto)
 
     suspend fun getProductos() = comprasApi.getProductos()
 
@@ -60,7 +60,7 @@ class RemoteDataSource @Inject constructor(
 
     suspend fun deleteCompra(compraId: Int) = comprasApi.deleteCompra(compraId)
 
-    suspend fun updateCompra(compraId: Int) = comprasApi.updateCompra(compraId)
+    suspend fun updateCompra(compraId: Int, compraDto: CompraDto) = comprasApi.updateCompra(compraId, compraDto)
 
     suspend fun getCompras() = comprasApi.getCompras()
 }
