@@ -104,21 +104,30 @@ class CompraViewModel @Inject constructor(
             is CompraUiEvent.ProductoIdChanged -> {
                 _uiState.update {
                     it.copy(
-                        productoId = event.productoId
+                        productoId = event.productoId,
+                        precioUnitario = it.productos.find { p -> p.productoId == event.productoId }?.precio.toString(),
+                        errorProductoId = ""
                     )
                 }
             }
             is CompraUiEvent.CantidadChanged -> {
+
+                val cantidad = event.cantidad.toIntOrNull() ?: 0
+                val precioUnitario = _uiState.value.precioUnitario?.toFloatOrNull() ?: 0.0f
+
                 _uiState.update {
                     it.copy(
-                        cantidad = event.cantidad
+                        cantidad = event.cantidad,
+                        totalCompra = (cantidad * precioUnitario).toString(),
+                        errorCantidad = ""
                     )
                 }
             }
             is CompraUiEvent.PrecioUnitarioChanged -> {
                 _uiState.update {
                     it.copy(
-                        precioUnitario = event.precioUnitario
+                        precioUnitario = event.precioUnitario,
+                        errorPrecioUnitario = ""
                     )
                 }
             }
@@ -131,16 +140,66 @@ class CompraViewModel @Inject constructor(
                                 compraId = compra.compraId,
                                 fechaCompra = compra.fechaCompra,
                                 productoId = compra.productoId,
-                                cantidad = compra.cantidad,
-                                precioUnitario = compra.precioUnitario,
-                                totalCompra = compra.totalCompra
+                                cantidad = compra.cantidad.toString(),
+                                precioUnitario = compra.precioUnitario.toString(),
+                                totalCompra = compra.totalCompra.toString()
                             )
                         }
                     }
                 }
             }
-            CompraUiEvent.Save -> TODO()
-            CompraUiEvent.Delete -> TODO()
+            CompraUiEvent.Save -> {
+                viewModelScope.launch {
+
+                    if(_uiState.value.productoId == 0){
+                        _uiState.update {
+                            it.copy(
+                                errorProductoId = "Debe seleccionar un producto"
+                            )
+                        }
+                    }
+
+                    if(_uiState.value.cantidad?.isBlank() == true) {
+                        _uiState.update {
+                            it.copy(
+                                errorCantidad = "Debe ingresar una cantidad"
+                            )
+                        }
+                    }
+                    else if(_uiState.value.cantidad?.toIntOrNull()!! < 0 || _uiState.value.cantidad?.toIntOrNull()!! > 1000) {
+                        _uiState.update {
+                            it.copy(
+                                errorCantidad = "Debe ingresar una cantidad entre 0 y 1000"
+                            )
+                        }
+                    }
+
+                    if(_uiState.value.errorProductoId == "" && _uiState.value.errorCantidad == ""){
+
+                        if(_uiState.value.compraId == null)
+                            compraRepository.addCompra(_uiState.value.toEntity())
+                        else
+                            compraRepository.updateCompra(
+                                _uiState.value.compraId ?: 0,
+                                _uiState.value.toEntity()
+                            )
+
+                        _uiState.update {
+                            it.copy(
+                                success = true
+                            )
+                        }
+                    }
+
+                }
+            }
+            CompraUiEvent.Delete -> {
+                viewModelScope.launch {
+                    compraRepository.deleteCompra(_uiState.value.compraId ?: 0)
+                }
+            }
+
+            else -> {}
         }
     }
 
@@ -148,8 +207,8 @@ class CompraViewModel @Inject constructor(
         compraId = compraId,
         fechaCompra = fechaCompra,
         productoId = productoId ?: 0,
-        cantidad = cantidad ?: 0,
-        precioUnitario = precioUnitario ?: 0.0f,
-        totalCompra = totalCompra ?: 0.0f
+        cantidad = cantidad?.toIntOrNull() ?: 0,
+        precioUnitario = precioUnitario?.toFloatOrNull() ?: 0.0f,
+        totalCompra = totalCompra?.toFloatOrNull() ?: 0.0f
     )
 }
