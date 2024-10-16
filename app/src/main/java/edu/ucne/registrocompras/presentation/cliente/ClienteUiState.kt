@@ -1,6 +1,6 @@
 package edu.ucne.registrocompras.presentation.cliente
 
-import edu.ucne.registrocompras.data.remote.dto.ClienteDto
+import edu.ucne.registrocompras.data.local.entities.ClienteEntity
 import java.time.Instant
 import java.util.Date
 
@@ -11,7 +11,7 @@ data class ClienteUiState(
     val cedula: String? = "",
     val direccion: String? = "",
     val telefono: String? = "",
-    val clientes: List<ClienteDto> = emptyList(),
+    val clientes: List<ClienteEntity> = emptyList(),
     val errorNombre: String? = "",
     val errorCedula: String? = "",
     val errorDireccion: String? = "",
