@@ -1,9 +1,16 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class
+)
 
 package edu.ucne.registrocompras.presentation.cliente
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,9 +38,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +61,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import edu.ucne.registrocompras.R
 import edu.ucne.registrocompras.data.remote.dto.ClienteDto
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -65,7 +80,11 @@ fun ClienteListScreen(
         scope = scope,
         uiState = uiState,
         onClickCliente = onClickCliente,
-        onAddCliente = onAddCliente
+        onAddCliente = onAddCliente,
+        onDeleteCliente = { clienteId ->
+            viewModel.onEvent(ClienteUiEvent.ClienteIdChange(clienteId))
+            viewModel.onEvent(ClienteUiEvent.Delete)
+        }
     )
 }
 
@@ -75,8 +94,16 @@ fun ClienteListBodyScreen(
     scope: CoroutineScope,
     uiState: ClienteUiState,
     onClickCliente: (Int) -> Unit,
-    onAddCliente: () -> Unit
+    onAddCliente: () -> Unit,
+    onDeleteCliente: (Int) -> Unit
 ){
+    val clientes = remember { mutableStateListOf(*uiState.clientes.toTypedArray()) }
+
+    LaunchedEffect(uiState.clientes) {
+        clientes.clear()
+        clientes.addAll(uiState.clientes)
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -156,7 +183,7 @@ fun ClienteListBodyScreen(
                         modifier = Modifier
                             .fillMaxSize()
                     ){
-                        if(uiState.clientes.isEmpty()){
+                        if(clientes.isEmpty()){
                             item {
                                 Column(
                                     modifier = Modifier
@@ -176,10 +203,16 @@ fun ClienteListBodyScreen(
                                 }
                             }
                         }else{
-                            items(uiState.clientes){
+                            items(
+                                items = clientes,
+                                key = { it.clienteId ?: 0 }
+                            ){
                                 ClienteRow(
                                     it = it,
-                                    onClickCliente = onClickCliente
+                                    onClickCliente = onClickCliente,
+                                    onDeleteCliente = onDeleteCliente,
+                                    clientes = clientes,
+                                    modifier = Modifier.animateItemPlacement(tween(200))
                                 )
                             }
                         }
@@ -193,65 +226,107 @@ fun ClienteListBodyScreen(
 @Composable
 fun ClienteRow(
     it: ClienteDto,
-    onClickCliente: (Int) -> Unit
+    onClickCliente: (Int) -> Unit,
+    onDeleteCliente: (Int) -> Unit,
+    clientes: MutableList<ClienteDto>,
+    modifier: Modifier = Modifier
 ){
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
-    Card(
-        onClick = {
-            onClickCliente(it.clienteId ?: 0)
-        },
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFB0BEC5)
-        ),
-        modifier = Modifier
-            .padding(top = 20.dp)
-            .fillMaxWidth()
-            .heightIn(min = 100.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(R.drawable.cliente_image),
-                contentDescription = "Clientes Image",
-                modifier = Modifier
-                    .padding(vertical = 20.dp)
-                    .size(96.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop
+    val scope = rememberCoroutineScope()
+    val swipeToDismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { state ->
+            if(state == SwipeToDismissBoxValue.EndToStart){
+                scope.launch {
+                    delay(500)
+                    onDeleteCliente(it.clienteId ?: 0)
+                    clientes.remove(it)
+                }
+                true
+            } else{
+                false
+            }
+        }
+    )
+
+    LaunchedEffect(clientes) {
+        swipeToDismissState.snapTo(SwipeToDismissBoxValue.Settled)
+    }
+
+    SwipeToDismissBox(
+        state = swipeToDismissState,
+        backgroundContent = {
+            val backgroundColor by animateColorAsState(
+                targetValue = when (swipeToDismissState.currentValue) {
+                    SwipeToDismissBoxValue.StartToEnd -> Color.Green
+                    SwipeToDismissBoxValue.EndToStart -> Color.Red
+                    SwipeToDismissBoxValue.Settled -> Color.White
+                }, label = ""
             )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(
+            Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
+                    .fillMaxSize()
+                    .background(backgroundColor)
+            )
+        },
+        modifier = modifier
+    ){
+        Card(
+            onClick = {
+                onClickCliente(it.clienteId ?: 0)
+            },
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFB0BEC5)
+            ),
+            modifier = Modifier
+                .padding(top = 20.dp)
+                .fillMaxWidth()
+                .heightIn(min = 100.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Fecha de Creación: ${dateFormat.format(it.fechaCreacion)}",
-                    style = MaterialTheme.typography.bodyMedium,
+                Image(
+                    painter = painterResource(R.drawable.cliente_image),
+                    contentDescription = "Clientes Image",
+                    modifier = Modifier
+                        .padding(vertical = 20.dp)
+                        .size(96.dp)
+                        .clip(RoundedCornerShape(10.dp)),
+                    contentScale = ContentScale.Crop
                 )
-                Text(
-                    text = "Nombre: ${it.nombre}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Cédula: ${it.cedula}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Dirección: ${it.direccion}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Teléfono: ${it.telefono}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                ) {
+                    Text(
+                        text = "Fecha de Creación: ${dateFormat.format(it.fechaCreacion)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Nombre: ${it.nombre}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Cédula: ${it.cedula}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Dirección: ${it.direccion}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Teléfono: ${it.telefono}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
         }
     }
