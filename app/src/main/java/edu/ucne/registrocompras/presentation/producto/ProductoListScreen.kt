@@ -1,9 +1,14 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 
 package edu.ucne.registrocompras.presentation.producto
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,9 +36,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +61,7 @@ import edu.ucne.registrocompras.data.remote.dto.CategoriaDto
 import edu.ucne.registrocompras.data.remote.dto.ProductoDto
 import edu.ucne.registrocompras.data.remote.dto.ProveedorDto
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -67,7 +80,11 @@ fun ProductoListScreen(
         scope = scope,
         uiState = uiState,
         onClickProducto = onClickProducto,
-        onAddProducto = onAddProducto
+        onAddProducto = onAddProducto,
+        onDeleteProducto = { productoId ->
+            viewModel.onEvent(ProductoUiEvent.ProductoIdChange(productoId))
+            viewModel.onEvent(ProductoUiEvent.Delete)
+        }
     )
 }
 
@@ -77,8 +94,16 @@ private fun ProductoListBodyScreen(
     scope: CoroutineScope,
     uiState: ProductoUiState,
     onClickProducto: (productoId: Int) -> Unit,
-    onAddProducto: () -> Unit
+    onAddProducto: () -> Unit,
+    onDeleteProducto: (productoId: Int) -> Unit
 ){
+    val productos = remember { mutableStateListOf(*uiState.productos.toTypedArray()) }
+
+    LaunchedEffect(uiState.productos) {
+        productos.clear()
+        productos.addAll(uiState.productos)
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -158,7 +183,7 @@ private fun ProductoListBodyScreen(
                         modifier = Modifier
                             .fillMaxSize()
                     ){
-                        if(uiState.productos.isEmpty()){
+                        if(productos.isEmpty()){
                             item {
                                 Column(
                                     modifier = Modifier
@@ -178,12 +203,18 @@ private fun ProductoListBodyScreen(
                                 }
                             }
                         }else{
-                            items(uiState.productos){
+                            items(
+                                items = productos,
+                                key = { it.productoId ?: 0 }
+                            ){
                                 ProductoRow(
                                     it = it,
                                     categorias = uiState.categorias,
                                     proveedores = uiState.proveedores,
-                                    onClickProducto = onClickProducto
+                                    onClickProducto = onClickProducto,
+                                    onDeleteProducto = onDeleteProducto,
+                                    productos = productos,
+                                    modifier = Modifier.animateItemPlacement(tween(200))
                                 )
                             }
                         }
@@ -199,7 +230,10 @@ private fun ProductoRow(
     it: ProductoDto,
     categorias: List<CategoriaDto>,
     proveedores: List<ProveedorDto>,
-    onClickProducto: (productoId: Int) -> Unit
+    onClickProducto: (productoId: Int) -> Unit,
+    onDeleteProducto: (productoId: Int) -> Unit,
+    productos: MutableList<ProductoDto>,
+    modifier: Modifier = Modifier
 ){
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
@@ -211,65 +245,104 @@ private fun ProductoRow(
         proveedor.proveedorId == it.proveedorId
     }?.nombre ?: ""
 
-    Card(
-        onClick = {
-            onClickProducto(it.productoId ?: 0)
-        },
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFB0BEC5)
-        ),
-        modifier = Modifier
-            .padding(top = 20.dp)
-            .fillMaxWidth()
-            .heightIn(min = 100.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(R.drawable.productos_image),
-                contentDescription = "Productos Image",
-                modifier = Modifier
-                    .padding(vertical = 20.dp)
-                    .size(96.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop
+    val scope = rememberCoroutineScope()
+    val swipeToDismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { state ->
+            if(state == SwipeToDismissBoxValue.EndToStart){
+                scope.launch {
+                    delay(500)
+                    onDeleteProducto(it.productoId ?: 0)
+                    productos.remove(it)
+                }
+                true
+            } else{
+                false
+            }
+        }
+    )
+
+    LaunchedEffect(productos) {
+        swipeToDismissState.snapTo(SwipeToDismissBoxValue.Settled)
+    }
+
+    SwipeToDismissBox(
+        state = swipeToDismissState,
+        backgroundContent = {
+            val backgroundColor by animateColorAsState(
+                targetValue = when (swipeToDismissState.currentValue) {
+                    SwipeToDismissBoxValue.StartToEnd -> Color.Green
+                    SwipeToDismissBoxValue.EndToStart -> Color.Red
+                    SwipeToDismissBoxValue.Settled -> Color.White
+                }, label = ""
             )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(
+            Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
+                    .fillMaxSize()
+                    .background(backgroundColor)
+            )
+        },
+        modifier = modifier
+    ){
+        Card(
+            onClick = {
+                onClickProducto(it.productoId ?: 0)
+            },
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFB0BEC5)
+            ),
+            modifier = Modifier
+                .padding(top = 20.dp)
+                .fillMaxWidth()
+                .heightIn(min = 100.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Fecha de Creación: ${dateFormat.format(it.fechaCreacion)}",
-                    style = MaterialTheme.typography.bodyMedium,
+                Image(
+                    painter = painterResource(R.drawable.productos_image),
+                    contentDescription = "Productos Image",
+                    modifier = Modifier
+                        .padding(vertical = 20.dp)
+                        .size(96.dp)
+                        .clip(RoundedCornerShape(10.dp)),
+                    contentScale = ContentScale.Crop
                 )
-                Text(
-                    text = "Nombre: ${it.nombre}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Descripción: ${it.descripcion}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Precio: ${it.precio}",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Proveedor: $descripcionProveedor",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = "Categoría: $descripcionCategoria",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                ) {
+                    Text(
+                        text = "Fecha de Creación: ${dateFormat.format(it.fechaCreacion)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Nombre: ${it.nombre}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Descripción: ${it.descripcion}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Precio: ${it.precio}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Proveedor: $descripcionProveedor",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Categoría: $descripcionCategoria",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
         }
     }
