@@ -17,7 +17,7 @@ class ProveedorRepository @Inject constructor(
 
     suspend fun deleteProveedor(proveedorId: Int) = remoteDataSource.deleteProveedor(proveedorId)
 
-    suspend fun updateProveedor(proveedorId: Int) = remoteDataSource.updateProveedor(proveedorId)
+    suspend fun updateProveedor(proveedorId: Int, proveedorDto: ProveedorDto) = remoteDataSource.updateProveedor(proveedorId, proveedorDto)
 
     fun getProveedores(): Flow<Resource<List<ProveedorDto>>> = flow{
         try {
