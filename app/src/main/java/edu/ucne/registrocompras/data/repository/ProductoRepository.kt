@@ -17,7 +17,7 @@ class ProductoRepository @Inject constructor(
 
     suspend fun deleteProducto(productoId: Int) = remoteDataSource.deleteProducto(productoId)
 
-    suspend fun updateProducto(productoId: Int) = remoteDataSource.updateProducto(productoId)
+    suspend fun updateProducto(productoId: Int, productoDto: ProductoDto) = remoteDataSource.updateProducto(productoId, productoDto)
 
     fun getProductos(): Flow<Resource<List<ProductoDto>>> = flow{
         try {
