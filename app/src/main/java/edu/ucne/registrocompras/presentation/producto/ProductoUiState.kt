@@ -1,9 +1,9 @@
 package edu.ucne.registrocompras.presentation.producto
 
 
-import edu.ucne.registrocompras.data.remote.dto.CategoriaDto
-import edu.ucne.registrocompras.data.remote.dto.ProductoDto
-import edu.ucne.registrocompras.data.remote.dto.ProveedorDto
+import edu.ucne.registrocompras.data.local.entities.CategoriaEntity
+import edu.ucne.registrocompras.data.local.entities.ProductoEntity
+import edu.ucne.registrocompras.data.local.entities.ProveedorEntity
 import java.time.Instant
 import java.util.Date
 
@@ -15,9 +15,9 @@ data class ProductoUiState(
     val categoriaId: Int? = 0,
     val proveedorId: Int? = 0,
     val precio: String? = "",
-    val productos: List<ProductoDto> = emptyList(),
-    val categorias: List<CategoriaDto> = emptyList(),
-    val proveedores: List<ProveedorDto> = emptyList(),
+    val productos: List<ProductoEntity> = emptyList(),
+    val categorias: List<CategoriaEntity> = emptyList(),
+    val proveedores: List<ProveedorEntity> = emptyList(),
     val errorNombre: String? = "",
     val errorDescripcion: String? = "",
     val errorCategoriaId: String? = "",
