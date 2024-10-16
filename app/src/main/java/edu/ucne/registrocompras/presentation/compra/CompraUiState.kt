@@ -1,8 +1,7 @@
 package edu.ucne.registrocompras.presentation.compra
 
-import edu.ucne.registrocompras.data.remote.Resource
-import edu.ucne.registrocompras.data.remote.dto.CompraDto
-import edu.ucne.registrocompras.data.remote.dto.ProductoDto
+import edu.ucne.registrocompras.data.local.entities.CompraEntity
+import edu.ucne.registrocompras.data.local.entities.ProductoEntity
 import java.time.Instant
 import java.util.Date
 
@@ -13,8 +12,8 @@ data class CompraUiState(
     val cantidad: String? = "",
     val precioUnitario: String? = "",
     val totalCompra: String? = "",
-    val compras: List<CompraDto> = emptyList(),
-    val productos: List<ProductoDto> = emptyList(),
+    val compras: List<CompraEntity> = emptyList(),
+    val productos: List<ProductoEntity> = emptyList(),
     val errorProductoId: String? = "",
     val errorCantidad: String? = "",
     val errorPrecioUnitario: String? = "",
